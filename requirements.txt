@@ -1,0 +1,8 @@
+Flask~=3.0.3
+pyshark~=0.6
+Flask-Cors
+docker~=7.0.0
+Flask-SocketIO
+eventlet
+watchdog~=4.0.0
+Werkzeug~=3.0.2
