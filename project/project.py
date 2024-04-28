@@ -1,7 +1,8 @@
+import glob
 import json
 import os
+import time
 import threading
-from datetime import datetime
 
 from bson import json_util
 from flask import Blueprint, jsonify, request
@@ -9,7 +10,8 @@ from flask_cors import CORS
 from pymongo import DESCENDING
 from werkzeug.utils import secure_filename
 from analyzePcap import analyze_conversation
-from db import get_db, db
+from db import get_db, db, load_settings
+from remoteCommand import create_ssh_client, execute_remote_command, copy_file_from_remote, periodic_sync
 from socketManager import socketio
 from watcher import Watcher, active_observers
 
@@ -31,7 +33,6 @@ class Project:
         self.project_collection = self.db.projects
         self.pcap_files = []
 
-        # Assicurati che il progetto sia registrato nel DB
         if self.project_collection.count_documents({'name': self.name}) == 0:
             self.project_collection.insert_one({'name': self.name, 'pcap_files': []})
 
@@ -52,24 +53,26 @@ class Project:
         return json.loads(json_util.dumps(obj))
 
 
-    def background_task(self, filepath):
-        print(f"Analyzing {filepath}")
-        conversations = analyze_conversation(filepath, self.name, self.port, 100)
-        from socketManager import socketio
-        conversations_serializable = json.dumps(conversations, default=self.serialize_datetime)
-        socketio.emit("analyze_pcap", {"project_name": self.name, "conversations": conversations_serializable}, to=None)
-        print(f"Finished analyzing {filepath}")
+    def background_task(self, folder_path):
+        while True:
+            for filepath in glob.glob(os.path.join(folder_path, '*.pcap')):
+                conversations = analyze_conversation(filepath, self.name, self.port, 100)
+                from socketManager import socketio
+                conversations_serializable = json.dumps(conversations, default=self.serialize_datetime)
+                socketio.emit("analyze_pcap", {"project_name": self.name, "conversations": conversations_serializable}, to=None)
+                self.project_collection.update_one({'name': self.name}, {'$pull': {'pcap_files': filepath}})
+                os.remove(filepath)
+            time.sleep(10)
 
 
-    def analyze_pcap(self, filepath):
-        thread = threading.Thread(target=self.background_task, args=(filepath,))
+    def analyze_pcap(self, folder_path):
+        thread = threading.Thread(target=self.background_task, args=(folder_path,))
         thread.start()
         return {"result": "start analyzing"}
 
 
     @staticmethod
     def load(project_name):
-        db = get_db()
         project_data = db.projects.find_one({'name': project_name})
         if project_data:
             project = Project(project_data['name'])
@@ -87,10 +90,40 @@ class Project:
         }
 
 
-# Rotte specifiche della Blueprint
+    def start_tcp_dump(self):
+        settings = load_settings()
+        def run_tcpdump():
+            ssh_client = create_ssh_client(settings["server_vul"], settings["port_vul"], settings["user"], settings["password"])
+
+            # Check folder
+            folder_path = f"/pcap/{self.name}"
+            check_and_create = f"mkdir -p {folder_path} && chmod 777 {folder_path}"
+            execute_remote_command(ssh_client, check_and_create)
+
+            command = f"tcpdump -i any -G 10 -w {folder_path}/dump-%H-%M-%S.pcap"
+            execute_remote_command(ssh_client, command)
+
+        # Avvia il thread
+        thread = threading.Thread(target=run_tcpdump)
+        thread.start()
+
+        thread2 = threading.Thread(target=periodic_sync, args=(settings, self.name))
+        thread2.start()
+
+        return {"apposto": "cari ragazzi"}
+
+
+
+@project_blueprint.route('/start-dump/<project_name>')
+def start_dump(project_name):
+    project = Project.load(project_name)
+    project.analyze_pcap(f"./projects/{project_name}")
+    return project.start_tcp_dump()
+
+
 @project_blueprint.route('/create/<name>')
 def create_project(name):
-    project = Project(name)
+    Project(name)
     return jsonify({'message': 'Project created', 'name': name}), 200
 
 
@@ -127,6 +160,7 @@ def list_projects():
         return jsonify([]), 200
 
 
+
 @project_blueprint.route('/analyze/<project_name>/<pcap_name>/')
 def analyze(project_name, pcap_name):
     project = Project.load(project_name)
@@ -142,7 +176,6 @@ def set_port():
         project = Project.load(data['project_name'])
         port = data['port']
         project.set_port(port)
-        print(data)
         return jsonify({"saved": port}), 200
     else:
         return jsonify({"error": "Request must be JSON", "statusText": "erroree"}), 400

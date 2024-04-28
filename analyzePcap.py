@@ -2,7 +2,7 @@ import datetime
 import subprocess
 import pyshark
 from pymongo import ASCENDING, DESCENDING
-
+import time
 from db import get_db
 
 
@@ -15,6 +15,7 @@ def get_conversations(filepath, filter_tcp):
     conversations = []
     command = f"tshark -r {filepath} -Y \"{filter_tcp}\" -T fields -e tcp.stream | sort -urn"
     result = subprocess.run(command, capture_output=True, text=True, shell=True)
+
     for line in result.stdout.splitlines():
         conversations.append(line)
     return conversations

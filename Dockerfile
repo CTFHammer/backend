@@ -4,6 +4,8 @@ FROM python:3.9-slim
 # Imposta la directory di lavoro nel container
 WORKDIR /app
 
+RUN mkdir -p ./db-data
+
 # Copia i file di requisiti e installa le dipendenze
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt

@@ -15,6 +15,9 @@ RUN echo 'root:password' | chpasswd
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
+RUN mkdir -p /pcap
+
+
 # SSH login fix. Otherwise user is kicked off after login
 RUN mkdir /var/run/sshd
 

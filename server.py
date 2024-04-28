@@ -28,4 +28,3 @@ finally:
 
 
 print("\nRicostruzione della conversazione:\n")
-print(conversation)

@@ -8,3 +8,5 @@ watchdog~=4.0.0
 Werkzeug~=3.0.2
 pymongo
 python-bsonjs
+paramiko
+scp

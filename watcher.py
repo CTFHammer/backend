@@ -21,12 +21,12 @@ class Watcher(FileSystemEventHandler):
             print(f"Detected new pcap file: {event.src_path}")
             filename = os.path.basename(event.src_path)
             self.project.add_pcap(filename)
-            self.project.save()
 
-        if self.socketio is not None:
-            self.socketio.emit('new_pcap', {'message': 'New pcap file analyzed: ' + filename},  to=None)
-        else:
-            print("Error: socketio is not initialized.")
+            if self.socketio is not None:
+                self.socketio.emit('new_pcap', {'message': 'New pcap file analyzed: ' + filename},  to=None)
+            else:
+                print("Error: socketio is not initialized.")
+
 
     def start_watching(self):
         if self.project.name not in active_observers:
@@ -38,6 +38,10 @@ class Watcher(FileSystemEventHandler):
             thread = threading.Thread(target=observer.join)
             thread.start()
             print(f"Started watching project: {self.project.name}")
+
+
+    def start_tcp_watching(self):
+        pass
 
 
     def stop_watching(self):

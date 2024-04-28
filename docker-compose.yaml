@@ -4,6 +4,7 @@ services:
     command: flask run --host=0.0.0.0 --debug
     volumes:
       - .:/app
+      - ./db-data:/data/db
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "5000:5000"
@@ -28,7 +29,6 @@ services:
 
   mongo-express:
     image: mongo-express
-    restart: always
     ports:
       - 8081:8081
     environment:

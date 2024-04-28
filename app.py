@@ -4,8 +4,9 @@ from flask_cors import CORS
 from flask_socketio import emit
 import logging
 from config import create_app, create_docker_client
-from db import get_db
+from db import get_db, save_settings, load_settings
 from project.project import project_blueprint
+
 
 app, socketio = create_app()
 client = create_docker_client()
@@ -16,18 +17,6 @@ app.register_blueprint(project_blueprint, url_prefix='/project')
 
 SETTINGS_FILE = 'settings.json'
 
-
-def save_settings(settings):
-    with open(SETTINGS_FILE, 'w') as f:
-        json.dump(settings, f)
-
-
-def load_settings():
-    try:
-        with open(SETTINGS_FILE, 'r') as f:
-            return json.load(f)
-    except (IOError, json.JSONDecodeError):
-        return {}
 
 
 @socketio.on('connect')
@@ -61,10 +50,8 @@ def get_settings():
 def set_settings():
     if request.is_json:
         data = request.get_json()
-        settings = load_settings()
-        settings['regexFlag'] = data.get("regexFlag")
-        save_settings(settings)
-        return jsonify({"saved": settings}), 200
+        save_settings(data)
+        return jsonify({"saved": data}), 200
     else:
         return jsonify({"error": "Request must be JSON"}), 400
 
