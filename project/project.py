@@ -1,10 +1,16 @@
 import json
 import os
+import threading
+from datetime import datetime
+
+from bson import json_util
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
+from pymongo import DESCENDING
 from werkzeug.utils import secure_filename
 from analyzePcap import analyze_conversation
-from db import get_db
+from db import get_db, db
+from socketManager import socketio
 from watcher import Watcher, active_observers
 
 PCAP_DIR = './projects'
@@ -42,10 +48,23 @@ class Project:
         self.project_collection.update_one({'name': self.name}, {'$set': {'port': self.port}})
 
 
-    def analyze_pcap(self, filepath):
+    def serialize_datetime(self, obj):
+        return json.loads(json_util.dumps(obj))
+
+
+    def background_task(self, filepath):
         print(f"Analyzing {filepath}")
-        analyze_conversation(filepath, self.name, self.port, self.max_conversation_for_file)
+        conversations = analyze_conversation(filepath, self.name, self.port, 100)
+        from socketManager import socketio
+        conversations_serializable = json.dumps(conversations, default=self.serialize_datetime)
+        socketio.emit("analyze_pcap", {"project_name": self.name, "conversations": conversations_serializable}, to=None)
         print(f"Finished analyzing {filepath}")
+
+
+    def analyze_pcap(self, filepath):
+        thread = threading.Thread(target=self.background_task, args=(filepath,))
+        thread.start()
+        return {"result": "start analyzing"}
 
 
     @staticmethod
@@ -55,7 +74,7 @@ class Project:
         if project_data:
             project = Project(project_data['name'])
             project.pcap_files = project_data['pcap_files']
-            project.port = project_data.get('port')  # Ensure you also load the port if it's set
+            project.port = project_data.get('port')
             return project
         return None
 
@@ -153,6 +172,20 @@ def stop_watch(project_name):
         return jsonify({'message': 'Watching stopped for project ' + project_name}), 200
     else:
         return jsonify({'message': 'Not watching project ' + project_name}), 400
+
+
+@project_blueprint.route('/conversations')
+def get_conversations():
+    conversations_collection = get_db().conversations
+    project_name = request.args.get('project_name')
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 25))
+    offset = (page - 1) * limit
+
+    cursor = conversations_collection.find({"project_name": project_name}).sort("timestamp", DESCENDING).skip(offset).limit(limit)
+    results = list(cursor)
+
+    return json.loads(json_util.dumps(results))
 
 
 @project_blueprint.route('/')

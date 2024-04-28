@@ -1,11 +1,14 @@
 import datetime
 import subprocess
 import pyshark
+from pymongo import ASCENDING, DESCENDING
+
 from db import get_db
 
 
 db = get_db()
 conversations_collection = db.conversations
+conversations_collection.create_index([("timestamp", DESCENDING)])
 
 
 def get_conversations(filepath, filter_tcp):
@@ -39,7 +42,7 @@ def parse_conversation(conversation):
 
 def analyze_conversation(filepath, project_name, port, max_conversations=100):
     filter = f"tcp.port != 443 && tcp.port != 22 && tcp.payload && tcp.port eq {port}"
-    if port is None:
+    if port is None or port == -1:
         filter = f"tcp.port != 443 && tcp.port != 22 && tcp.payload"
     conversations = get_conversations(filepath, filter)
     new_conversations = []
@@ -48,11 +51,12 @@ def analyze_conversation(filepath, project_name, port, max_conversations=100):
         message = get_tcp_streams(filepath, conversation, filter)
         new_conversations.append({
             "message": message,
-            "project": project_name,
+            "project_name": project_name,
             "timestamp": datetime.datetime.now().isoformat(),
         })
-
-    conversations_collection.insert_many(new_conversations)
+    if len(conversations) > 0:
+        conversations_collection.insert_many(new_conversations)
+        return new_conversations
 
 
 # a sort of brute force
