@@ -1,12 +1,16 @@
 import json
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flask_socketio import emit
 import logging
-from project.project import project_blueprint
 from config import create_app, create_docker_client
+from db import get_db
+from project.project import project_blueprint
 
 app, socketio = create_app()
 client = create_docker_client()
+
+
 
 app.register_blueprint(project_blueprint, url_prefix='/project')
 
@@ -33,7 +37,7 @@ def test_connect():
 
 @socketio.on('message')
 def test_message(data):
-    emit('response', {'message': data})
+    emit('response', {'message': "ciao"})
 
 
 @socketio.on('disconnect')
@@ -48,7 +52,6 @@ def saluta():
 
 @app.route('/settings', methods=['GET'])
 def get_settings():
-
     settings = load_settings()
     regex_flag = settings.get('regexFlag', None)
     return jsonify({"regexFlag": regex_flag})
@@ -74,9 +77,9 @@ def list_docker():
         list_containers.append({"id": container.id, "name": container.name, "networks": container.ports})
     return list_containers
 
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
+logging.getLogger('werkzeug').setLevel(logging.WARN)
 
 
 if __name__ == '__main__':
-
-    socketio.run(app, debug=True)
+    socketio.run(debug=True)

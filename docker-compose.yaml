@@ -1,7 +1,7 @@
 services:
   flaskapp:
     build: .
-    command: flask run --host=0.0.0.0 --reload
+    command: flask run --host=0.0.0.0 --debug
     volumes:
       - .:/app
       - /var/run/docker.sock:/var/run/docker.sock
@@ -17,3 +17,10 @@ services:
     restart: unless-stopped
     profiles:
       - dev
+
+  mongo:
+    image: mongo:latest
+    volumes:
+      - ./db-data:/data/db
+    ports:
+      - "27017:27017"
