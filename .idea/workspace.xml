@@ -4,21 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a9c8a786-b7d0-40ef-9787-671d3742a435" name="Changes" comment="feat: update pcap logic">
-      <change afterPath="$PROJECT_DIR$/remoteCommand.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/backend.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/backend.iml" afterDir="false" />
+    <list default="true" id="a9c8a786-b7d0-40ef-9787-671d3742a435" name="Changes" comment="feat: add sync logic">
+      <change afterPath="$PROJECT_DIR$/modules/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/conversations.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/pcap_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/project.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyzePcap.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyzePcap.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/db.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analyzePcap.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/analyzePcap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/database.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/project/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/project.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projects/test/cap8.pcap" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sshTesting/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/sshTesting/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/watcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/watcher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,11 +119,11 @@
       <recent name="\\wsl.localhost\kali-linux\home\edoardo\ctfHammer\backend\projects\test" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="\\wsl.localhost\kali-linux\home\edoardo\ctfHammer\backend\modules" />
       <recent name="\\wsl.localhost\kali-linux\home\edoardo\ctfHammer\backend\projects\test" />
       <recent name="\\wsl.localhost\kali-linux\home\edoardo\ctfHammer\backend\projects\prova" />
       <recent name="\\wsl.localhost\kali-linux\home\edoardo\ctfHammer\backend" />
       <recent name="\\wsl.localhost\kali-linux\home\edoardo\ctfHammer\backend\projects" />
-      <recent name="$PROJECT_DIR$" />
     </key>
   </component>
   <component name="RunManager" selected="Flask server.backend">
@@ -230,7 +227,7 @@
       <workItem from="1714152070845" duration="1076000" />
       <workItem from="1714250312631" duration="13672000" />
       <workItem from="1714293352109" duration="6947000" />
-      <workItem from="1714308895348" duration="15089000" />
+      <workItem from="1714308895348" duration="22694000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -248,7 +245,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714263833019</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="feat: add sync logic">
+      <option name="closed" value="true" />
+      <created>1714326873356</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1714326873356</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -268,9 +273,10 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
     <MESSAGE value="feat: update pcap logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: update pcap logic" />
+    <MESSAGE value="feat: add sync logic" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add sync logic" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/backend$backend.coverage" NAME="backend Coverage Results" MODIFIED="1714326184579" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/backend$backend.coverage" NAME="backend Coverage Results" MODIFIED="1714326816271" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
