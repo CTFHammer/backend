@@ -5,17 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a9c8a786-b7d0-40ef-9787-671d3742a435" name="Changes" comment="feat: add sync logic">
+      <change afterPath="$PROJECT_DIR$/modules/analyzePcap.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/modules/config.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/modules/conversations.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modules/database.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/modules/pcap_manager.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/modules/project.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/analyzePcap.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/analyzePcap.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/database.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/project/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/project.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -277,6 +274,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="feat: add sync logic" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/backend$backend.coverage" NAME="backend Coverage Results" MODIFIED="1714326816271" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/backend$backend.coverage" NAME="backend Coverage Results" MODIFIED="1714403318897" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
