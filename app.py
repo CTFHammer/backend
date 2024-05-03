@@ -3,17 +3,20 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import emit
 import logging
-from config import create_app, create_docker_client
-from db import get_db, save_settings, load_settings
+from modules.database import load_settings, save_settings
+from modules.socketManager import create_socketio
 from project.project import project_blueprint
 
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = create_socketio(app)
 
-app, socketio = create_app()
-client = create_docker_client()
-
+if __name__ == '__main__':
+    socketio.run(app)
 
 
 app.register_blueprint(project_blueprint, url_prefix='/project')
+CORS(app)
 
 SETTINGS_FILE = 'settings.json'
 
@@ -58,11 +61,12 @@ def set_settings():
 
 @app.route("/docker/list")
 def list_docker():
+    return ["lol"]
     # TODO add the real docker from the vulbox this will be the code in vulBox
-    list_containers = []
-    for container in client.containers.list():
-        list_containers.append({"id": container.id, "name": container.name, "networks": container.ports})
-    return list_containers
+    # list_containers = []
+    # for container in client.containers.list():
+    #     list_containers.append({"id": container.id, "name": container.name, "networks": container.ports})
+    # return list_containers
 
 
 logging.getLogger('werkzeug').setLevel(logging.WARN)

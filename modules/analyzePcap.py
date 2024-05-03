@@ -34,18 +34,18 @@ def parse_conversation(conversation):
     return messages
 
 
-def analyze_conversation(filepath, project_name, port, max_conversations=100):
+def analyze_conversation(filepath: str, project_name: str, port: int, max_conversations=100):
     db = get_db()
     conversations_collection = db.conversations
     conversations_collection.create_index([("timestamp", DESCENDING)])
-    filter = f"tcp.port != 443 && tcp.port != 22 && tcp.payload && tcp.port eq {port}"
+    filter_packets = f"tcp.port != 443 && tcp.port != 22 && tcp.payload && tcp.port eq {port}"
     if port is None or port == -1:
-        filter = f"tcp.port != 443 && tcp.port != 22 && tcp.payload"
-    conversations = get_conversations(filepath, filter)
+        filter_packets = f"tcp.port != 443 && tcp.port != 22 && tcp.payload"
+    conversations = get_conversations(filepath, filter_packets)
     new_conversations = []
     for x, conversation in enumerate(conversations):
         if x > max_conversations: break
-        message = get_tcp_streams(filepath, conversation, filter)
+        message = get_tcp_streams(filepath, conversation, filter_packets)
         new_conversations.append({
             "message": message,
             "project_name": project_name,

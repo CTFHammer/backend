@@ -1,15 +1,14 @@
 import json
 import os
-
 import pymongo
 from bson import json_util
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from pymongo import DESCENDING
 from werkzeug.utils import secure_filename
-
+from modules.Managers.ProjectManager import ProjectManager
+from modules.Models.ProjectModel import Project
 from modules.config import PCAP_DIR
-from modules.project import Project
 from watcher import Watcher, active_observers
 
 
@@ -17,6 +16,7 @@ from watcher import Watcher, active_observers
 project_blueprint = Blueprint('project', __name__)
 CORS(project_blueprint)
 
+project_manager = ProjectManager()
 
 @project_blueprint.route('/start-dump/<project_name>')
 def start_dump(project_name):
@@ -27,8 +27,11 @@ def start_dump(project_name):
 
 @project_blueprint.route('/create/<name>')
 def create_project(name):
-    Project(name)
-    return jsonify({'message': 'Project created', 'name': name}), 200
+    if  project_manager.exists(name):
+       return {"message": "Project already exists"}, 500
+    else:
+        project_manager.create_project_in_db(name)
+        return jsonify({'message': 'Project created', 'name': name}), 200
 
 
 @project_blueprint.route('/get-project/<name>', methods=['GET'])
@@ -56,7 +59,7 @@ def upload_pcap(project_name):
 
 @project_blueprint.route('/list')
 def list_projects():
-    return list_projects()
+    return project_manager.list_projects()
 
 
 @project_blueprint.route('/analyze/<project_name>/<pcap_name>/')

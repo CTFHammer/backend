@@ -1,19 +1,26 @@
+from typing import Optional
+from bson import ObjectId
+
+from modules.Managers.PcapManager import PCAPManager
 from modules.config import PCAP_DIR
-from modules.database import ProjectManager, load_settings
-from modules.pcap_manager import PCAPManager
+from modules.database import load_settings
 
 class Project:
-    def __init__(self, name):
+    def __init__(self, name: str, port: int = 0):
         self.name = name
         self.max_conversation_for_file = 50
-
-        # Init project
-        self.db_manager = ProjectManager(name)
-        self.db_manager.insert_project()
+        self.port = port
 
         # Init PCAPManager
         self.pcap_manager = PCAPManager(f"./{PCAP_DIR}/{name}", name, self)
 
+    @staticmethod
+    def parse(project) -> dict:
+        print(project)
+        return {
+            "name": project["name"],
+            "port": project.get("port", -1),
+        }
 
     def add_pcap(self, pcap_file):
         self.pcap_manager.add_pcap(pcap_file)
@@ -23,17 +30,21 @@ class Project:
         self.pcap_manager.remove_pcap(pcap_file)
 
 
-    def set_port(self, port):
-        self.db_manager.set_port(port)
+    def set_port(self, port: int) -> None:
+        self.manager.set_port(port)
 
 
-    def toJSON(self):
+    def toJSON(self) -> dict:
         return {
             'name': self.name,
             'port': self.port,
-            'pcap_files': self.pcap_files,
         }
 
+
+    @staticmethod
+    def from_dict(source):
+        # Assumiamo che 'source' sia un dizionario con chiavi 'name' e 'port'
+        return Project(name=source.get('name', ''), port=source.get('port', 0))
 
     # def start_tcp_dump(self):
     #     settings = load_settings()

@@ -15,7 +15,6 @@ services:
     build: ./sshTesting
     ports:
       - "2222:22"
-    restart: unless-stopped
     profiles:
       - dev
 
