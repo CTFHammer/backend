@@ -1,25 +1,33 @@
 import json
+
+from bson import ObjectId
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import emit
 import logging
+from modules.Managers.SSHManager import SSHManager
 from modules.database import load_settings, save_settings
 from modules.socketManager import create_socketio
 from project.project import project_blueprint
 
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        return super(CustomJSONEncoder, self).default(obj)
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = create_socketio(app)
+app.json_encoder = CustomJSONEncoder
 
 if __name__ == '__main__':
     socketio.run(app)
 
-
 app.register_blueprint(project_blueprint, url_prefix='/project')
 CORS(app)
-
-SETTINGS_FILE = 'settings.json'
-
 
 
 @socketio.on('connect')
@@ -45,8 +53,19 @@ def saluta():
 @app.route('/settings', methods=['GET'])
 def get_settings():
     settings = load_settings()
-    regex_flag = settings.get('regexFlag', None)
-    return jsonify({"regexFlag": regex_flag})
+    return jsonify(settings)
+
+
+@app.route("/test-vul-connection", methods=['POST'])
+def test_vul_connection():
+    if not request.is_json:
+        return jsonify({"error": "Missing JSON in request"}), 400
+    data = request.get_json()
+    print(data)
+    if SSHManager.test_connection(data["vulIp"], int(data["vulPort"]), data["vulPass"]):
+        return {"status": 0, "message": "Connected"}, 200
+    else:
+        return jsonify({"status": 1, "message": "Not connected"}), 200
 
 
 @app.route('/settings', methods=['POST'])
@@ -70,7 +89,6 @@ def list_docker():
 
 
 logging.getLogger('werkzeug').setLevel(logging.WARN)
-
 
 if __name__ == '__main__':
     socketio.run(debug=True)

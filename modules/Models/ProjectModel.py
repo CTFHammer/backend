@@ -1,9 +1,10 @@
 from typing import Optional
 from bson import ObjectId
-
+import shutil
 from modules.Managers.PcapManager import PCAPManager
 from modules.config import PCAP_DIR
 from modules.database import load_settings
+
 
 class Project:
     def __init__(self, name: str, port: int = 0):
@@ -16,7 +17,6 @@ class Project:
 
     @staticmethod
     def parse(project) -> dict:
-        print(project)
         return {
             "name": project["name"],
             "port": project.get("port", -1),
@@ -25,20 +25,24 @@ class Project:
     def add_pcap(self, pcap_file):
         self.pcap_manager.add_pcap(pcap_file)
 
-
     def remove_pcap(self, pcap_file):
         self.pcap_manager.remove_pcap(pcap_file)
 
-
     def set_port(self, port: int) -> None:
         self.manager.set_port(port)
-
 
     def toJSON(self) -> dict:
         return {
             'name': self.name,
             'port': self.port,
         }
+
+
+    def delete(self):
+        try:
+            shutil.rmtree(f'{PCAP_DIR}/{self.name}', ignore_errors=True)
+        except FileNotFoundError:
+            print("Folder doesn't exist")
 
 
     @staticmethod

@@ -11,12 +11,12 @@ from modules.Models.ProjectModel import Project
 from modules.config import PCAP_DIR
 from watcher import Watcher, active_observers
 
-
 # Creazione della Blueprint
 project_blueprint = Blueprint('project', __name__)
 CORS(project_blueprint)
 
 project_manager = ProjectManager()
+
 
 @project_blueprint.route('/start-dump/<project_name>')
 def start_dump(project_name):
@@ -27,20 +27,20 @@ def start_dump(project_name):
 
 @project_blueprint.route('/create/<name>')
 def create_project(name):
-    if  project_manager.exists(name):
-       return {"message": "Project already exists"}, 500
+    if project_manager.exists(name):
+        return {"message": "Project already exists"}, 409
     else:
         project_manager.create_project_in_db(name)
-        return jsonify({'message': 'Project created', 'name': name}), 200
+        return jsonify({'message': 'Project created', 'name': name}), 201
 
 
 @project_blueprint.route('/get-project/<name>', methods=['GET'])
 def get_project(name):
-    project = Project(name)
-    if project:
-        return jsonify(project.toJSON()), 200
+    project_dic = project_manager.find_project(name)
+    if project_dic is None:
+        return {"message": "not found"}, 404
     else:
-        return jsonify({'message': 'Project not found'}), 404
+        return jsonify(Project.parse(project_dic)), 200
 
 
 @project_blueprint.route('/upload-pcap/<project_name>', methods=['POST'])
@@ -74,12 +74,12 @@ def analyze(project_name, pcap_name):
 def set_port():
     if request.is_json:
         data = request.get_json()
-        project = Project.load(data['project_name'])
-        port = data['port']
-        project.set_port(port)
-        return jsonify({"saved": port}), 200
+        print(data["project_name"], int(data["port"]))
+        project_manager.set_port(data["project_name"], int(data["port"]))
+        return {"saved": "success"}, 200
     else:
-        return jsonify({"error": "Request must be JSON", "statusText": "erroree"}), 400
+        print(request)
+        return jsonify({"error": "Request must be JSON", "statusText": "erroree"}), 500
 
 
 @project_blueprint.route('/start-watch/<project_name>')
@@ -108,6 +108,16 @@ def stop_watch(project_name):
         return jsonify({'message': 'Not watching project ' + project_name}), 400
 
 
+@project_blueprint.route("/delete/<project_name>")
+def delete_project(project_name):
+    if project_manager.exists(project_name) is False:
+        return jsonify({'message': 'Project not found'}), 404
+    project_manager.delete_project(project_name)
+    project = Project(project_name)
+    project.delete()
+    return {"message": "Project deleted"}, 200
+
+
 @project_blueprint.route('/conversations')
 def get_conversations():
     conversations_collection = get_db().conversations
@@ -116,7 +126,8 @@ def get_conversations():
     limit = int(request.args.get('limit', 25))
     offset = (page - 1) * limit
 
-    cursor = conversations_collection.find({"project_name": project_name}).sort("timestamp", DESCENDING).skip(offset).limit(limit)
+    cursor = conversations_collection.find({"project_name": project_name}).sort("timestamp", DESCENDING).skip(
+        offset).limit(limit)
     results = list(cursor)
 
     return json.loads(json_util.dumps(results))

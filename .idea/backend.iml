@@ -8,7 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/db-data" />
       <excludeFolder url="file://$MODULE_DIR$/projects" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="/usr/bin/python3.11" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TemplatesService">
