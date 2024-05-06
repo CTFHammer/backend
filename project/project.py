@@ -1,13 +1,13 @@
 import json
 import os
-import pymongo
 from bson import json_util
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from pymongo import DESCENDING
 from werkzeug.utils import secure_filename
-from modules.Managers.ProjectManager import ProjectManager
+from modules.Managers.ProjectManager import ProjectManager, start_tcp_dump, stop_tcp_dump, download_pcap
 from modules.Models.ProjectModel import Project
+from modules.analyzePcap import analyze_conversation
 from modules.config import PCAP_DIR
 from watcher import Watcher, active_observers
 
@@ -82,21 +82,23 @@ def set_port():
         return jsonify({"error": "Request must be JSON", "statusText": "erroree"}), 500
 
 
-@project_blueprint.route('/start-watch/<project_name>')
+@project_blueprint.route('/start-tcp-dump/<project_name>')
 def start_watch(project_name):
-    project = Project.load(project_name)
-    if project is not None:
-        from watcher import active_observers
-        from socketManager import socketio
-        if project.name not in active_observers:
-            watcher = Watcher(project, socketio)
-            watcher.start_watching()
-            return jsonify({'message': 'Watching started for project ' + project_name}), 200
-        else:
-            return jsonify({'message': 'Project \'' + project_name + '\' is already watching.'}), 200
-    else:
-        print("progetto non trovato")
-        return jsonify({'message': 'Not project found with name: ' + project_name}), 404
+    ris = start_tcp_dump(project_name)
+    if "pid" in ris:
+        project_manager.save_project(project_name, {"pid_tcpdump": ris["pid"]})
+    return ris, 200
+
+
+@project_blueprint.route('/download-dump/<project_name>')
+def download_tcp_dump(project_name):
+    download_pcap(project_name)
+    return {"message": "downloading"}
+
+
+@project_blueprint.route('/stop-tcp-dump/<project_name>')
+def stop_tcp(project_name):
+    return stop_tcp_dump(project_name), 200
 
 
 @project_blueprint.route('/stop-watch/<project_name>')
@@ -116,6 +118,14 @@ def delete_project(project_name):
     project = Project(project_name)
     project.delete()
     return {"message": "Project deleted"}, 200
+
+
+@project_blueprint.route("/analyze-pcap/<project_name>")
+def analyze_pcap(project_name):
+    res = analyze_conversation.delay("./projects/prova/test.pcap",
+                                     project_name,
+                                     54321)
+    return {"result": "Task started", "id": res.id}
 
 
 @project_blueprint.route('/conversations')

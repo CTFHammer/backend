@@ -8,7 +8,6 @@ from modules.config import PCAP_DIR
 from modules.database import get_db
 
 
-
 class PCAPManager:
     def __init__(self, project_dir, project_name, project_class):
         # Check if dir exists
@@ -21,16 +20,13 @@ class PCAPManager:
 
         self.pcap_files = []
 
-
     def add_pcap(self, pcap_file):
         self.pcap_files.append(pcap_file)
         self.project_manager.add_pcap(pcap_file)
 
-
     def remove_pcap(self, pcap_file):
         os.remove(pcap_file)
         self.project_manager.db_manager.remove_pcap(pcap_file)
-
 
     def analyze_local_pcap(self, folder_path: str):
         while True:
@@ -38,18 +34,12 @@ class PCAPManager:
                 conversations = analyze_conversation(filepath, self.project_name, self.port, 100)
                 from modules.socketManager import socketio
                 conversations_serializable = json.dumps(conversations)
-                socketio.emit("analyze_pcap", {"project_name": self.project_name, "conversations": conversations_serializable}, to=None)
+                socketio.emit("analyze_pcap",
+                              {"project_name": self.project_name, "conversations": conversations_serializable}, to=None)
                 self.remove_pcap(filepath)
             time.sleep(10)
-
-
-
-
-
 
 
 class PCAPDatabse:
     def __init__(self):
         self.db = get_db()
-
-

@@ -1,14 +1,17 @@
 import json
-
+from time import sleep
 from bson import ObjectId
-from flask import Flask, jsonify, request
+from celery import shared_task, Celery
+from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 from flask_socketio import emit
 import logging
-from modules.Managers.SSHManager import SSHManager
+import modules.Managers.SSHManager as SSHManager
+from conversations.conversations import conversations_blueprint
+from modules.config import create_app, app, socketio
 from modules.database import load_settings, save_settings
-from modules.socketManager import create_socketio
 from project.project import project_blueprint
+from flask_pymongo import PyMongo
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -18,16 +21,15 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super(CustomJSONEncoder, self).default(obj)
 
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = create_socketio(app)
-app.json_encoder = CustomJSONEncoder
-
 if __name__ == '__main__':
+    app.config['DEBUG'] = True
     socketio.run(app)
 
+app.json_encoder = CustomJSONEncoder
 app.register_blueprint(project_blueprint, url_prefix='/project')
+app.register_blueprint(conversations_blueprint, url_prefix='/conversations')
 CORS(app)
+celery_app = app.extensions["celery"]
 
 
 @socketio.on('connect')
@@ -42,7 +44,8 @@ def test_message(data):
 
 @socketio.on('disconnect')
 def test_disconnect():
-    print('Client disconnected')
+    # print('Client disconnected')
+    pass
 
 
 @app.route('/')
@@ -61,8 +64,7 @@ def test_vul_connection():
     if not request.is_json:
         return jsonify({"error": "Missing JSON in request"}), 400
     data = request.get_json()
-    print(data)
-    if SSHManager.test_connection(data["vulIp"], int(data["vulPort"]), data["vulPass"]):
+    if SSHManager.test_ssh(data["vulIp"], int(data["vulPort"]), data["vulUser"], data["vulPass"]):
         return {"status": 0, "message": "Connected"}, 200
     else:
         return jsonify({"status": 1, "message": "Not connected"}), 200
@@ -73,9 +75,15 @@ def set_settings():
     if request.is_json:
         data = request.get_json()
         save_settings(data)
+        SSHManager.after_save_setting(data)
         return jsonify({"saved": data}), 200
     else:
         return jsonify({"error": "Request must be JSON"}), 400
+
+
+@app.route('/check-vul', methods=['GET'])
+def check_vulnerability_system():
+    return {"result_id": "ok"}
 
 
 @app.route("/docker/list")

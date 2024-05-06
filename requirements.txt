@@ -6,7 +6,8 @@ Flask-SocketIO
 eventlet
 watchdog~=4.0.0
 Werkzeug~=3.0.2
-pymongo
+pymongo~=4.7.0
 python-bsonjs
-paramiko
-scp
+paramiko~=3.4.0
+scp~=0.14.5
+celery~=5.4.0
