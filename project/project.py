@@ -13,6 +13,7 @@ from modules.Models.ProjectModel import Project
 from modules.analyzePcap import analyze_conversation
 from modules.config import PCAP_DIR, app
 from modules.Managers.ProjectManager import start_analysis
+from modules.database import get_db
 
 # Creazione della Blueprint
 project_blueprint = Blueprint('project', __name__)
@@ -126,6 +127,13 @@ def start_total_dump(project_name):
     res = start_analysis.delay(project_name)
     save_project(project_name, {"task_total": res.id})
     return {"message": "Total dump started", "pid": res.id}, 200
+
+
+@project_blueprint.route('/test-dump')
+def test_dump():
+    print(os.getcwd())
+    analyze_conversation("./daje.pcap", "prova", 54321, "google", delete=False)
+    return {"message": "Total dump started"}, 200
 
 
 @project_blueprint.route('/stop-total-dump/<project_name>')

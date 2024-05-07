@@ -13,3 +13,9 @@ def load_conversation(id_conv: str):
     db = get_db()
     conversation = db.conversations.find_one({'_id': ObjectId(id_conv)})
     return conversation
+
+
+def delete_conversation(id_conv: str):
+    db = get_db()
+    db.conversations.delete_one({'_id': ObjectId(id_conv)})
+    return True

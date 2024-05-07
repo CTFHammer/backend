@@ -4,19 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a9c8a786-b7d0-40ef-9787-671d3742a435" name="Changes" comment="feat: add the analyzing pcap">
+    <list default="true" id="a9c8a786-b7d0-40ef-9787-671d3742a435" name="Changes" comment="improved: Improved download files from remote">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/conversations/conversations.py" beforeDir="false" afterPath="$PROJECT_DIR$/conversations/conversations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/Managers/ConversationsManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/Managers/ConversationsManager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/Managers/ProjectManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/Managers/ProjectManager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/Managers/SSHManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/Managers/SSHManager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/Models/ProjectModel.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/Models/ProjectModel.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/analyzePcap.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/analyzePcap.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/conversations.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/project/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/project.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/remoteCommand.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/watcher.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -279,7 +273,8 @@
       <workItem from="1714985372306" duration="8684000" />
       <workItem from="1714999337451" duration="18372000" />
       <workItem from="1715033716868" duration="6575000" />
-      <workItem from="1715073581823" duration="4038000" />
+      <workItem from="1715073581823" duration="7376000" />
+      <workItem from="1715090679284" duration="5401000" />
     </task>
     <task id="LOCAL-00001" summary="initial commit">
       <option name="closed" value="true" />
@@ -321,7 +316,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715022371516</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="improved: Improved download files from remote">
+      <option name="closed" value="true" />
+      <created>1715078179623</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1715078179623</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -345,7 +348,8 @@
     <MESSAGE value="order: some order in this mess" />
     <MESSAGE value="feat: add SSHManager.py singleton" />
     <MESSAGE value="feat: add the analyzing pcap" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: add the analyzing pcap" />
+    <MESSAGE value="improved: Improved download files from remote" />
+    <option name="LAST_COMMIT_MESSAGE" value="improved: Improved download files from remote" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/backend$ProjectManager.coverage" NAME="ProjectManager Coverage Results" MODIFIED="1714756347756" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules/Managers" />

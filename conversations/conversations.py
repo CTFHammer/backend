@@ -3,7 +3,7 @@ import json
 from bson import ObjectId, json_util
 from flask import Blueprint, jsonify
 from flask_cors import CORS
-from modules.Managers.ConversationsManager import load_conversations, load_conversation
+from modules.Managers.ConversationsManager import load_conversations, load_conversation, delete_conversation
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -37,3 +37,9 @@ def conversations(project_name):
 def single_conv(conversation_id):
     conv = load_conversation(conversation_id)
     return jsonify(parse_json(conv))
+
+
+@conversations_blueprint.route("/<conversation_id>", methods=['DELETE'])
+def del_conv(conversation_id):
+    conv = delete_conversation(conversation_id)
+    return {"result": conv}

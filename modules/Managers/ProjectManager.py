@@ -68,6 +68,9 @@ def upload_project(project_name, data):
 def start_tcp_dump(project_name: str):
     settings = load_settings()
     project = find_project(project_name)
+    if "pid_tcpdump" in project and project["pid_tcpdump"] != "":
+        return {"status": True, "message": "Already running", "pid": project["pid_tcpdump"]}
+
     duration = settings['durationDump']
     client = load_form_settings(settings)
     if client is False:
@@ -121,14 +124,16 @@ def stop_task(task_id):
 
 @shared_task(name="total_dump", ingore_result=True)
 def start_analysis(project_name: str):
+    settings = load_settings()
+    flag_regex = settings['regexFlag']
     while True:
         download_pcap(project_name)
         pcap_dir = f"{PCAP_DIR}/{project_name}"
         project = find_project(project_name)
         for filename in os.listdir(pcap_dir):
             file_path = os.path.join(pcap_dir, filename)
-            analyze_conversation.delay(file_path, project_name, project["port"])
-        sleep(10)
+            analyze_conversation.delay(file_path, project_name, project["port"], flag_regex)
+        sleep(60)
 
 
 def get_task_status(task_id):
