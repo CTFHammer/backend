@@ -1,10 +1,14 @@
+import os
+from time import sleep
 from typing import Optional, TYPE_CHECKING, TypeVar
 
 from celery import shared_task
+from celery.result import AsyncResult
 
 from modules.Managers.SSHManager import ssh_form_settings, execute_command, load_form_settings, \
     execute_background_command, download_files_scp
-from modules.config import PCAP_DIR
+from modules.analyzePcap import analyze_conversation
+from modules.config import PCAP_DIR, app
 from modules.database import get_db, load_settings
 from modules.Models.ProjectModel import Project
 
@@ -56,10 +60,15 @@ def find_project(project_name):
     return db.projects.find_one({"name": project_name})
 
 
-# @shared_task()
+def upload_project(project_name, data):
+    db = get_db()
+    db.projects.update_one({"name": project_name}, {'$set': data})
+
+
 def start_tcp_dump(project_name: str):
     settings = load_settings()
     project = find_project(project_name)
+    duration = settings['durationDump']
     client = load_form_settings(settings)
     if client is False:
         return {"status": False, "message": "SSH client is not available"}
@@ -68,13 +77,12 @@ def start_tcp_dump(project_name: str):
         return {"status": False, "message": "We need a port for TCP dump"}
 
     pcap_dir = f"{PCAP_DIR}/{project_name}"
-
-    command = f"tshark -i any -w {pcap_dir}/out.pcap -f \"port {project['port']}\" -b \"duration:10\""
+    command = f"tshark -i any -w {pcap_dir}/out.pcap -f \"port {project['port']}\" -b \"duration:{duration}\""
+    print(command)
     execute_command(client, f"mkdir -p {pcap_dir}")
     pid = execute_background_command(client, command)
-
     client.close()
-
+    upload_project(project_name, {"pid_tcpdump": pid})
     return {"status": True, "message": "TCP dump started successfully", "pid": pid}
 
 
@@ -85,16 +93,44 @@ def stop_tcp_dump(project_name: str):
         client = load_form_settings(settings)
         pid = project["pid_tcpdump"]
         out, _ = execute_command(client, f"kill -9 {pid}")
+        save_project(project_name, {"pid_tcpdump": ""})
         client.close()
         return {"status": True, "message": "TCP dump stopped", "pid": pid}
     else:
         return {"status": False, "message": "noting to stop"}
 
 
+def save_project(project_name, project):
+    db = get_db()
+    return db.projects.update_one({"name": project_name}, {'$set': project}, upsert=True)
+
+
 def download_pcap(project_name: str):
     settings = load_settings()
     pcap_dir = f"{PCAP_DIR}/{project_name}"
     client = load_form_settings(settings)
-    download_files_scp(client, pcap_dir, PCAP_DIR)
-    execute_command(client, f"rm -r {pcap_dir}/*")
+    download_files_scp(client, pcap_dir, pcap_dir)
     client.close()
+
+
+def stop_task(task_id):
+    app.extensions["celery"].control.revoke(
+        signal='SIGKILL',
+        task_id=task_id, terminate=True)
+
+
+@shared_task(name="total_dump", ingore_result=True)
+def start_analysis(project_name: str):
+    while True:
+        download_pcap(project_name)
+        pcap_dir = f"{PCAP_DIR}/{project_name}"
+        project = find_project(project_name)
+        for filename in os.listdir(pcap_dir):
+            file_path = os.path.join(pcap_dir, filename)
+            analyze_conversation.delay(file_path, project_name, project["port"])
+        sleep(10)
+
+
+def get_task_status(task_id):
+    result = AsyncResult(task_id)
+    return result.status

@@ -13,8 +13,8 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super(CustomJSONEncoder, self).default(obj)
 
 
-def conversations():
-    return jsonify({"status": "ok", conversations: load_conversations(10)})
+def conversations(project_name):
+    return jsonify({"status": "ok", conversations: load_conversations(project_name, 10)})
 
 
 conversations_blueprint = Blueprint('conversations', __name__)
@@ -27,9 +27,9 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 
-@conversations_blueprint.route("/", methods=['GET'])
-def conversations():
-    conv = load_conversations(10)
+@conversations_blueprint.route("/get-first/<project_name>", methods=['GET'])
+def conversations(project_name):
+    conv = load_conversations(project_name, 10)
     return jsonify(parse_json(conv))
 
 

@@ -1,4 +1,5 @@
 import datetime
+import os
 import subprocess
 
 from bson import ObjectId
@@ -38,14 +39,15 @@ def parse_conversation(conversation):
     return messages
 
 
-@shared_task()
+@shared_task(ingore_result=True)
 def analyze_conversation(filepath: str, project_name: str, port: int, max_conversations=100):
     db = get_db()
+    print(filepath)
     conversations_collection = db.conversations
     conversations_collection.create_index([("timestamp", DESCENDING)])
-    filter_packets = f"tcp.port != 443 && tcp.port != 22 && tcp.payload && tcp.port eq {port}"
+    filter_packets = f"tcp.payload && tcp.port eq {port}"
     if port is None or port == -1:
-        filter_packets = f"tcp.port != 443 && tcp.port != 22 && tcp.payload"
+        filter_packets = f"tcp.payload"
     conversations = get_conversations(filepath, filter_packets)
     new_conversations = []
     for x, conversation in enumerate(conversations):
@@ -64,5 +66,7 @@ def analyze_conversation(filepath: str, project_name: str, port: int, max_conver
             "project_name": project_name,
             "conversations": len(new_conversations)
         })
+        os.remove(filepath)
         return parsed_conversations
+    os.remove(filepath)
     return []

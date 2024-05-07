@@ -2,11 +2,9 @@ import os
 import threading
 import paramiko
 from scp import SCPClient
-
 from modules.database import save_settings
 from celery import shared_task
 from paramiko.ssh_exception import AuthenticationException, NoValidConnectionsError
-from werkzeug.local import LocalProxy
 from modules.database import get_db, load_settings
 from modules.socketManager import socketio
 
@@ -117,5 +115,27 @@ def download_files_scp(client, remote_path, local_path):
     if not os.path.exists(local_path):
         os.makedirs(local_path)
 
+    stdin, stdout, stderr = client.exec_command(f"ls -1 {remote_path}")
+    files = stdout.read().decode().split()
+    error = stderr.read().decode()
+    if error:
+        print("Error listing the files:", error)
+        return
+
+    # Ottieni l'elenco dei file aperti utilizzando lsof
+    stdin, stdout, stderr = client.exec_command(f"lsof +D {remote_path}")
+    open_files = stdout.read().decode().splitlines()
+    open_files_set = set([line.split()[-1] for line in open_files[1:]])
+
     with SCPClient(client.get_transport()) as scp:
-        scp.get(remote_path, local_path, recursive=True)
+        for file in files:
+            full_remote_path = os.path.join(remote_path, file)
+            if full_remote_path not in open_files_set:
+                print(file)
+                scp.get(full_remote_path, os.path.join(local_path, file), recursive=True)
+                print("elimino", full_remote_path)
+                delete_cmd = f"rm {full_remote_path}"
+                stdin, stdout, stderr = client.exec_command(delete_cmd)
+                error = stderr.read().decode()
+                if error:
+                    print(f"Errore durante l'eliminazione del file {full_remote_path}: {error}")

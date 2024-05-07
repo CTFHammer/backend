@@ -17,10 +17,15 @@ class Project:
 
     @staticmethod
     def parse(project) -> dict:
-        return {
-            "name": project["name"],
-            "port": project.get("port", -1),
-        }
+        parsed_project = {}
+        for key, value in project.items():
+            if isinstance(value, ObjectId):
+                new_key = 'id' if key == '_id' else key
+                parsed_project[new_key] = str(value)
+            else:
+                new_key = 'id' if key == '_id' else key
+                parsed_project[new_key] = value
+        return parsed_project
 
     def add_pcap(self, pcap_file):
         self.pcap_manager.add_pcap(pcap_file)
@@ -37,13 +42,11 @@ class Project:
             'port': self.port,
         }
 
-
     def delete(self):
         try:
             shutil.rmtree(f'{PCAP_DIR}/{self.name}', ignore_errors=True)
         except FileNotFoundError:
             print("Folder doesn't exist")
-
 
     @staticmethod
     def from_dict(source):

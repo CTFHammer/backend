@@ -3,9 +3,9 @@ from bson import ObjectId
 from modules.database import get_db
 
 
-def load_conversations(n: int):
+def load_conversations(project_name: str, n: int):
     db = get_db()
-    conversations = db.conversations.find().limit(n)
+    conversations = db.conversations.find({"project_name": project_name}).sort("timestamp", -1).limit(n)
     return list(conversations)
 
 

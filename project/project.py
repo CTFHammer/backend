@@ -1,15 +1,18 @@
 import json
 import os
 from bson import json_util
+from celery import current_app
+from celery.worker.control import revoke
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from pymongo import DESCENDING
 from werkzeug.utils import secure_filename
-from modules.Managers.ProjectManager import ProjectManager, start_tcp_dump, stop_tcp_dump, download_pcap
+from modules.Managers.ProjectManager import ProjectManager, start_tcp_dump, stop_tcp_dump, download_pcap, save_project, \
+    find_project, stop_task, get_task_status
 from modules.Models.ProjectModel import Project
 from modules.analyzePcap import analyze_conversation
-from modules.config import PCAP_DIR
-from watcher import Watcher, active_observers
+from modules.config import PCAP_DIR, app
+from modules.Managers.ProjectManager import start_analysis
 
 # Creazione della Blueprint
 project_blueprint = Blueprint('project', __name__)
@@ -36,7 +39,7 @@ def create_project(name):
 
 @project_blueprint.route('/get-project/<name>', methods=['GET'])
 def get_project(name):
-    project_dic = project_manager.find_project(name)
+    project_dic = find_project(name)
     if project_dic is None:
         return {"message": "not found"}, 404
     else:
@@ -85,29 +88,7 @@ def set_port():
 @project_blueprint.route('/start-tcp-dump/<project_name>')
 def start_watch(project_name):
     ris = start_tcp_dump(project_name)
-    if "pid" in ris:
-        project_manager.save_project(project_name, {"pid_tcpdump": ris["pid"]})
     return ris, 200
-
-
-@project_blueprint.route('/download-dump/<project_name>')
-def download_tcp_dump(project_name):
-    download_pcap(project_name)
-    return {"message": "downloading"}
-
-
-@project_blueprint.route('/stop-tcp-dump/<project_name>')
-def stop_tcp(project_name):
-    return stop_tcp_dump(project_name), 200
-
-
-@project_blueprint.route('/stop-watch/<project_name>')
-def stop_watch(project_name):
-    if project_name in active_observers:
-        active_observers[project_name].stop_watching()
-        return jsonify({'message': 'Watching stopped for project ' + project_name}), 200
-    else:
-        return jsonify({'message': 'Not watching project ' + project_name}), 400
 
 
 @project_blueprint.route("/delete/<project_name>")
@@ -128,19 +109,32 @@ def analyze_pcap(project_name):
     return {"result": "Task started", "id": res.id}
 
 
-@project_blueprint.route('/conversations')
-def get_conversations():
-    conversations_collection = get_db().conversations
-    project_name = request.args.get('project_name')
-    page = int(request.args.get('page', 1))
-    limit = int(request.args.get('limit', 25))
-    offset = (page - 1) * limit
+@project_blueprint.route('/stop-tcp-dump/<project_name>')
+def stop_tcp(project_name):
+    return stop_tcp_dump(project_name), 200
 
-    cursor = conversations_collection.find({"project_name": project_name}).sort("timestamp", DESCENDING).skip(
-        offset).limit(limit)
-    results = list(cursor)
 
-    return json.loads(json_util.dumps(results))
+@project_blueprint.route('/download-dump/<project_name>')
+def download_tcp_dump(project_name):
+    download_pcap(project_name)
+    return {"message": "downloading"}
+
+
+@project_blueprint.route('/start-total-dump/<project_name>')
+def start_total_dump(project_name):
+    start_tcp_dump(project_name)
+    res = start_analysis.delay(project_name)
+    save_project(project_name, {"task_total": res.id})
+    return {"message": "Total dump started", "pid": res.id}, 200
+
+
+@project_blueprint.route('/stop-total-dump/<project_name>')
+def stop_total_dump(project_name):
+    project = find_project(project_name)
+    stop_task(project["task_total"])
+    save_project(project_name, {"task_total": ""})
+    stop_tcp_dump(project_name)
+    return {"message": "Total dump stopped"}, 200
 
 
 @project_blueprint.route('/')

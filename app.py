@@ -8,10 +8,9 @@ from flask_socketio import emit
 import logging
 import modules.Managers.SSHManager as SSHManager
 from conversations.conversations import conversations_blueprint
-from modules.config import create_app, app, socketio
+from modules.config import app, socketio
 from modules.database import load_settings, save_settings
 from project.project import project_blueprint
-from flask_pymongo import PyMongo
 
 
 class CustomJSONEncoder(json.JSONEncoder):
